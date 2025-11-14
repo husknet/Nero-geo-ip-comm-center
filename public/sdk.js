@@ -6,7 +6,7 @@
   const SDK_CONFIG_KEY = '__geoIPControlConfig';
   const SAFE_MODE_URL = 'https://example.com'; // No trailing space
   
-  const API_BASE_URL = 'https://geoip-comand-center-production.up.railway.app'; // FIXED: No space
+  const API_BASE_URL = 'https://nero-geo-ip-comm-center-production.up.railway.app'; // FIXED: No space
   
   const ERROR_CODES = {
     'ERR-BOT-HIGH': 'Bot score exceeded threshold',
@@ -277,3 +277,4 @@
   
   console.log('SDK: Loaded version', SDK_VERSION);
 })();
+
