@@ -212,12 +212,14 @@ app.use((req, res, next) => {
     // CRITICAL: Check whitelist even for preflight
     if (req.path.startsWith('/api') && !req.path.startsWith('/api/admin')) {
       if (isOriginAllowed(req)) {
-        // Allowed: respond with CORS headers
-        res.setHeader('Access-Control-Allow-Origin', origin);
+        // Allowed: respond with CORS headers (only set origin if it exists)
+        if (origin) {
+          res.setHeader('Access-Control-Allow-Origin', origin);
+          res.setHeader('Vary', 'Origin');
+        }
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-SDK-Version');
         res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Vary', 'Origin');
         return res.status(200).end();
       } else {
         // Blocked: return 403 WITHOUT CORS headers
@@ -240,10 +242,12 @@ app.use((req, res, next) => {
   // Handle actual API requests
   if (req.path.startsWith('/api') && !req.path.startsWith('/api/admin')) {
     if (isOriginAllowed(req)) {
-      // Add CORS headers and proceed
-      res.setHeader('Access-Control-Allow-Origin', origin);
+      // Add CORS headers only if origin exists
+      if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+      }
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Vary', 'Origin');
       next();
     } else {
       // Block unauthorized domains
