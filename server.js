@@ -77,7 +77,7 @@ function isOriginAllowed(req) {
 
   try {
     const originHostname = new URL(origin).hostname;
-    return allowedDomains.some(domain => 
+    return allowedDomains.some(domain =>
       originHostname === domain || originHostname.endsWith('.' + domain)
     );
   } catch {
@@ -86,7 +86,6 @@ function isOriginAllowed(req) {
 }
 
 // ===== CRITICAL: Centralized CORS + Whitelist Enforcement =====
-// This replaces all previous CORS middleware blocks
 app.use((req, res, next) => {
   const origin = req.get('origin');
 
@@ -104,11 +103,10 @@ app.use((req, res, next) => {
         return res.status(200).end();
       } else {
         // Blocked: return 403 WITHOUT CORS headers
-        // This forces browser to block the real request
         return res.status(403).json({ error: 'ERR-DOMAIN-BLOCKED' });
       }
     }
-    
+
     // Admin preflight always passes
     if (req.path.startsWith('/api/admin')) {
       res.setHeader('Access-Control-Allow-Origin', origin || '*');
@@ -117,7 +115,7 @@ app.use((req, res, next) => {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(200).end();
     }
-    
+
     return res.status(200).end();
   }
 
@@ -140,7 +138,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===== SDK.js endpoint (unchanged) =====
+// ===== SDK.js endpoint =====
 app.use('/sdk.js', (req, res, next) => {
   const origin = req.get('origin');
   const config = req.app.locals.config;
@@ -152,7 +150,7 @@ app.use('/sdk.js', (req, res, next) => {
     if (allowAllDomains) return true;
     try {
       const originHostname = new URL(originToCheck).hostname;
-      return allowedDomains.some(domain => 
+      return allowedDomains.some(domain =>
         originHostname === domain || originHostname.endsWith('.' + domain)
       );
     } catch {
@@ -206,16 +204,16 @@ app.use('/api/', rateLimit({
   skip: (req) => {
     const isAdmin = req.path.startsWith('/api/admin');
     const isWhitelisted = isWhitelistedDomain(req);
-    
+
     if (isWhitelisted) {
       console.log(`Rate limit SKIPPED for whitelisted domain: ${req.get('origin')}`);
     }
-    
+
     return isAdmin || isWhitelisted;
   }
 }));
 
-// API Routes (unchanged)
+// API Routes
 app.get('/api/config', async (req, res) => {
   try {
     const config = req.app.locals.config;
@@ -231,14 +229,20 @@ app.get('/api/config', async (req, res) => {
       allowAllDomains: config.allowAllDomains,
       lastUpdated: config.lastUpdated
     });
-  } catch { res.status(500).json({ error: 'ERR-CONFIG-LOAD' }); }
+  } catch (err) {
+    console.error('❌ Config load error:', err);
+    res.status(500).json({ error: 'ERR-CONFIG-LOAD' });
+  }
 });
 
 app.get('/api/themes', async (req, res) => {
   try {
     const data = await fs.readFile(THEMES_PATH, 'utf8');
     res.json(JSON.parse(data));
-  } catch { res.status(500).json({ error: 'ERR-THEMES-LOAD' }); }
+  } catch (err) {
+    console.error('❌ Themes load error:', err);
+    res.status(500).json({ error: 'ERR-THEMES-LOAD' });
+  }
 });
 
 app.post('/api/bot-detect', async (req, res) => {
@@ -250,16 +254,40 @@ app.post('/api/bot-detect', async (req, res) => {
       body: JSON.stringify({ ip, user_agent })
     });
     res.json(await response.json());
-  } catch { res.status(500).json({ error: 'ERR-BOT-DETECT' }); }
+  } catch (err) {
+    console.error('❌ Bot detection error:', err);
+    res.status(500).json({ error: 'ERR-BOT-DETECT' });
+  }
 });
 
+// ===== FIXED: Proper GeoIP endpoint with IP forwarding =====
 app.get('/api/geoip/:ip', async (req, res) => {
   try {
     const { ip } = req.params;
-    const response = await fetch(`https://ipapi.co/${ip}/json/`);
+    
+    // If SDK passes localhost, get real client IP
+    const clientIP = (ip === '127.0.0.1' || ip === '::1' || !ip)
+      ? req.headers['x-forwarded-for']?.split(',')[0] || req.ip 
+      : ip;
+    
+    console.log(`📍 GeoIP lookup requested for: ${clientIP}`);
+    
+    const response = await fetch(`https://ipapi.co/${clientIP}/json/`);
+    
+    if (!response.ok) {
+      throw new Error(`ipapi.co returned ${response.status}`);
+    }
+    
     const data = await response.json();
-    res.json({ country: data.country_name || 'Unknown', ip: data.ip || ip });
-  } catch { res.status(500).json({ error: 'ERR-GEOIP' }); }
+    const country = data.country_name || data.country || 'Unknown';
+    
+    console.log(`📍 GeoIP result: ${clientIP} → ${country}`);
+    
+    res.json({ country, ip: clientIP });
+  } catch (error) {
+    console.error(`❌ GeoIP lookup failed: ${error.message}`);
+    res.status(500).json({ error: 'ERR-GEOIP' });
+  }
 });
 
 app.post('/api/admin/login', async (req, res) => {
@@ -293,7 +321,8 @@ app.post('/api/admin/config', async (req, res) => {
     newConfig.adminPassword = newConfig.adminPassword || oldConfig.adminPassword;
     await saveConfig(newConfig);
     res.json({ success: true, lastUpdated: newConfig.lastUpdated });
-  } catch {
+  } catch (err) {
+    console.error('❌ Config save error:', err);
     res.status(500).json({ error: 'ERR-CONFIG-SAVE' });
   }
 });
@@ -307,6 +336,6 @@ app.listen(PORT, '0.0.0.0', async () => {
   await loadConfig();
   console.log(`🚀 Control Station v3.1 running on port ${PORT}`);
   console.log(`📊 Admin: http://localhost:${PORT}/admin.html`);
-  console.log(`🎯 SDK: http://localhost:${PORT}/sdk.js`);
+  console.log(`🎁 SDK: http://localhost:${PORT}/sdk.js`);
   console.log(`🔒 Domain whitelist active: ${app.locals.config.allowAllDomains ? 'DISABLED' : 'ENABLED'}`);
 });
