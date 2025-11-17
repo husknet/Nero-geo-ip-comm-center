@@ -13,6 +13,124 @@ const THEMES_PATH = path.join(__dirname, 'themes.json');
 
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'cyberpunk2024';
 
+// ===== COMPREHENSIVE COUNTRY CODE MAPPING (ISO 3166-1 alpha-2) =====
+const COUNTRY_CODE_MAP = {
+  // A
+  'AF': 'Afghanistan', 'AX': 'Åland Islands', 'AL': 'Albania', 'DZ': 'Algeria',
+  'AS': 'American Samoa', 'AD': 'Andorra', 'AO': 'Angola', 'AI': 'Anguilla',
+  'AQ': 'Antarctica', 'AG': 'Antigua and Barbuda', 'AR': 'Argentina', 'AM': 'Armenia',
+  'AW': 'Aruba', 'AU': 'Australia', 'AT': 'Austria', 'AZ': 'Azerbaijan',
+  
+  // B
+  'BS': 'Bahamas', 'BH': 'Bahrain', 'BD': 'Bangladesh', 'BB': 'Barbados',
+  'BY': 'Belarus', 'BE': 'Belgium', 'BZ': 'Belize', 'BJ': 'Benin', 'BM': 'Bermuda',
+  'BT': 'Bhutan', 'BO': 'Bolivia', 'BQ': 'Bonaire', 'BA': 'Bosnia', 'BW': 'Botswana',
+  'BV': 'Bouvet Island', 'BR': 'Brazil', 'IO': 'British Indian Ocean Territory',
+  'BN': 'Brunei', 'BG': 'Bulgaria', 'BF': 'Burkina', 'BI': 'Burundi',
+  
+  // C
+  'KH': 'Cambodia', 'CM': 'Cameroon', 'CA': 'Canada', 'CV': 'Cape Verde',
+  'KY': 'Cayman Islands', 'CF': 'Central African Republic', 'TD': 'Chad', 'CL': 'Chile',
+  'CN': 'China', 'CX': 'Christmas Island', 'CC': 'Cocos Islands', 'CO': 'Colombia',
+  'KM': 'Comoros', 'CG': 'Congo', 'CD': 'Congo', 'CK': 'Cook Islands', 'CR': 'Costa Rica',
+  'CI': 'Côte d\'Ivoire', 'HR': 'Croatia', 'CU': 'Cuba', 'CW': 'Curaçao', 'CY': 'Cyprus',
+  'CZ': 'Czech',
+  
+  // D
+  'DK': 'Denmark', 'DJ': 'Djibouti', 'DM': 'Dominica', 'DO': 'Dominican Republic',
+  
+  // E
+  'EC': 'Ecuador', 'EG': 'Egypt', 'SV': 'El Salvador', 'GQ': 'Equatorial Guinea',
+  'ER': 'Eritrea', 'EE': 'Estonia', 'SZ': 'Eswatini', 'ET': 'Ethiopia',
+  
+  // F
+  'FK': 'Falkland Islands', 'FO': 'Faroe Islands', 'FJ': 'Fiji', 'FI': 'Finland',
+  'FR': 'France', 'GF': 'French Guiana', 'PF': 'French Polynesia', 'TF': 'French Southern Territories',
+  
+  // G
+  'GA': 'Gabon', 'GM': 'Gambia', 'GE': 'Georgia', 'DE': 'Germany', 'GH': 'Ghana',
+  'GI': 'Gibraltar', 'GR': 'Greece', 'GL': 'Greenland', 'GD': 'Grenada', 'GP': 'Guadeloupe',
+  'GU': 'Guam', 'GT': 'Guatemala', 'GG': 'Guernsey', 'GN': 'Guinea', 'GW': 'Guinea-Bissau',
+  'GY': 'Guyana',
+  
+  // H
+  'HT': 'Haiti', 'HM': 'Heard Island', 'VA': 'Vatican City', 'HN': 'Honduras',
+  'HK': 'Hong Kong', 'HU': 'Hungary',
+  
+  // I
+  'IS': 'Iceland', 'IN': 'India', 'ID': 'Indonesia', 'IR': 'Iran', 'IQ': 'Iraq',
+  'IE': 'Ireland', 'IM': 'Isle of Man', 'IL': 'Israel', 'IT': 'Italy',
+  
+  // J
+  'JM': 'Jamaica', 'JP': 'Japan', 'JE': 'Jersey', 'JO': 'Jordan',
+  
+  // K
+  'KZ': 'Kazakhstan', 'KE': 'Kenya', 'KI': 'Kiribati', 'KP': 'Korea', 'KR': 'Korea',
+  'KW': 'Kuwait', 'KG': 'Kyrgyzstan',
+  
+  // L
+  'LA': 'Laos', 'LV': 'Latvia', 'LB': 'Lebanon', 'LS': 'Lesotho', 'LR': 'Liberia',
+  'LY': 'Libya', 'LI': 'Liechtenstein', 'LT': 'Lithuania', 'LU': 'Luxembourg',
+  
+  // M
+  'MO': 'Macau', 'MK': 'Macedonia', 'MG': 'Madagascar', 'MW': 'Malawi',
+  'MY': 'Malaysia', 'MV': 'Maldives', 'ML': 'Mali', 'MT': 'Malta',
+  'MH': 'Marshall Islands', 'MQ': 'Martinique', 'MR': 'Mauritania', 'MU': 'Mauritius',
+  'YT': 'Mayotte', 'MX': 'Mexico', 'FM': 'Micronesia', 'MD': 'Moldova', 'MC': 'Monaco',
+  'MN': 'Mongolia', 'ME': 'Montenegro', 'MS': 'Montserrat', 'MA': 'Morocco',
+  'MZ': 'Mozambique', 'MM': 'Myanmar',
+  
+  // N
+  'NA': 'Namibia', 'NR': 'Nauru', 'NP': 'Nepal', 'NL': 'Netherlands', 'NC': 'New Caledonia',
+  'NZ': 'New Zealand', 'NI': 'Nicaragua', 'NE': 'Niger', 'NG': 'Nigeria', 'NU': 'Niue',
+  'NF': 'Norfolk Island', 'MP': 'Northern Mariana Islands', 'NO': 'Norway',
+  
+  // O
+  'OM': 'Oman',
+  
+  // P
+  'PK': 'Pakistan', 'PW': 'Palau', 'PS': 'Palestine', 'PA': 'Panama', 'PG': 'Papua',
+  'PY': 'Paraguay', 'PE': 'Peru', 'PH': 'Philippines', 'PN': 'Pitcairn', 'PL': 'Poland',
+  'PT': 'Portugal', 'PR': 'Puerto Rico',
+  
+  // Q
+  'QA': 'Qatar',
+  
+  // R
+  'RE': 'Réunion', 'RO': 'Romania', 'RU': 'Russia', 'RW': 'Rwanda',
+  
+  // S
+  'BL': 'Saint Barthélemy', 'SH': 'Saint Helena', 'KN': 'Saint Kitts', 'LC': 'Saint Lucia',
+  'MF': 'Saint Martin', 'PM': 'Saint Pierre', 'VC': 'Saint Vincent', 'WS': 'Samoa',
+  'SM': 'San Marino', 'ST': 'São Tomé', 'SA': 'Saudi Arabia', 'SN': 'Senegal',
+  'RS': 'Serbia', 'SC': 'Seychelles', 'SL': 'Sierra', 'SG': 'Singapore',
+  'SX': 'Sint Maarten', 'SK': 'Slovakia', 'SI': 'Slovenia', 'SB': 'Solomon Islands',
+  'SO': 'Somalia', 'ZA': 'South Africa', 'GS': 'South Georgia', 'SS': 'South Sudan',
+  'ES': 'Spain', 'LK': 'Sri Lanka', 'SD': 'Sudan', 'SR': 'Suriname', 'SJ': 'Svalbard',
+  'SE': 'Sweden', 'CH': 'Switzerland', 'SY': 'Syria',
+  
+  // T
+  'TW': 'Taiwan', 'TJ': 'Tajikistan', 'TZ': 'Tanzania', 'TH': 'Thailand', 'TL': 'Timor-Leste',
+  'TG': 'Togo', 'TK': 'Tokelau', 'TO': 'Tonga', 'TT': 'Trinidad', 'TN': 'Tunisia',
+  'TR': 'Turkey', 'TM': 'Turkmenistan', 'TC': 'Turks and Caicos', 'TV': 'Tuvalu',
+  
+  // U
+  'UG': 'Uganda', 'UA': 'Ukraine', 'AE': 'UAE', 'GB': 'United Kingdom', 'US': 'United States',
+  'UM': 'United States Minor Outlying Islands', 'UY': 'Uruguay', 'UZ': 'Uzbekistan',
+  
+  // V
+  'VU': 'Vanuatu', 'VE': 'Venezuela', 'VN': 'Vietnam', 'VG': 'Virgin Islands', 'VI': 'Virgin Islands',
+  
+  // W
+  'WF': 'Wallis and Futuna', 'EH': 'Western Sahara',
+  
+  // Y
+  'YE': 'Yemen',
+  
+  // Z
+  'ZM': 'Zambia', 'ZW': 'Zimbabwe'
+};
+
 // Config functions
 async function loadConfig() {
   try {
@@ -260,14 +378,14 @@ app.post('/api/bot-detect', async (req, res) => {
   }
 });
 
-// ===== FIXED: Proper GeoIP endpoint with IP forwarding =====
+// ===== ENHANCED GEOIP ENDPOINT WITH COMPLETE COUNTRY NORMALIZATION =====
 app.get('/api/geoip/:ip', async (req, res) => {
   try {
     const { ip } = req.params;
     
-    // If SDK passes localhost, get real client IP
+    // Resolve real client IP with better proxy handling
     const clientIP = (ip === '127.0.0.1' || ip === '::1' || !ip)
-      ? req.headers['x-forwarded-for']?.split(',')[0] || req.ip 
+      ? req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip 
       : ip;
     
     console.log(`📍 GeoIP lookup requested for: ${clientIP}`);
@@ -279,9 +397,25 @@ app.get('/api/geoip/:ip', async (req, res) => {
     }
     
     const data = await response.json();
-    const country = data.country_name || data.country || 'Unknown';
     
-    console.log(`📍 GeoIP result: ${clientIP} → ${country}`);
+    // Multi-layer country normalization
+    let country = data.country_name || data.country || 'Unknown';
+    
+    // Convert 2-letter ISO codes to full names
+    if (country.length === 2 && COUNTRY_CODE_MAP[country.toUpperCase()]) {
+      country = COUNTRY_CODE_MAP[country.toUpperCase()];
+      console.log(`🔤 Converted country code "${data.country}" → "${country}"`);
+    }
+    
+    // Handle special case for UK/GB
+    if (country === 'GB' || country === 'UK') {
+      country = 'United Kingdom';
+    }
+    
+    // Final sanitization
+    country = country.trim();
+    
+    console.log(`📍 GeoIP result: ${clientIP} → "${country}" (raw: "${data.country_name || data.country}")`);
     
     res.json({ country, ip: clientIP });
   } catch (error) {
@@ -334,8 +468,9 @@ app.get('/health', (req, res) => {
 // Start server
 app.listen(PORT, '0.0.0.0', async () => {
   await loadConfig();
-  console.log(`🚀 Control Station v3.1 running on port ${PORT}`);
+  console.log(`🚀 Control Station v3.2 running on port ${PORT}`);
   console.log(`📊 Admin: http://localhost:${PORT}/admin.html`);
   console.log(`🎁 SDK: http://localhost:${PORT}/sdk.js`);
   console.log(`🔒 Domain whitelist active: ${app.locals.config.allowAllDomains ? 'DISABLED' : 'ENABLED'}`);
+  console.log(`🌍 Country code mapping: ${Object.keys(COUNTRY_CODE_MAP).length} countries loaded`);
 });
