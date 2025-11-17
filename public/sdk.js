@@ -10,7 +10,7 @@ const API_BASE_URL = 'https://nero-geo-ip-comm-center-production.up.railway.app'
 
 const ERROR_CODES = {
   'ERR-BOT-HIGH': 'Bot score exceeded threshold',
-  'ERR-COUNTRY-BLOCK': 'Country is in blocked list',
+  'ERR-CPPD-BLOCK': 'Country is in blocked list',
   'ERR-COUNTRY-UNKNOWN': 'Country could not be determined',
   'ERR-IP-BLACKLIST': 'IP address is blacklisted',
   'ERR-ISP-SCRAPER': 'ISP identified as scraper service',
@@ -348,4 +348,5 @@ window.GeoIPControlSDK = {
 
 console.log('🚀 SDK: Loaded version', SDK_VERSION);
 })();
+
 
